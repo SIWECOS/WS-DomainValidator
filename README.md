@@ -67,5 +67,5 @@ docker run -it --network host validator
 ```
 The webservice is then reachable under:
 ```
-http://127.0.0.1:8080/start
+http://127.0.0.1:8080/validate
 ```
