@@ -1,7 +1,7 @@
 /**
- *  SIWECOS-TLS-Scanner - A Webservice for the TLS-Scanner Module of TLS-Attacker
+ *  SIWECOS-Host-Validator - A Webservice for the Siwecos Infrastructure to validate user provided hosts
  *
- *  Copyright 2014-2017 Ruhr University Bochum / Hackmanit GmbH
+ *  Copyright 2019 Ruhr University Bochum / Hackmanit GmbH
  *
  *  Licensed under Apache License 2.0
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -9,13 +9,18 @@
  */
 package de.rub.nds.siwecos.validator.ws;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.rub.nds.siwecos.validator.DebugManager;
 import de.rub.nds.siwecos.validator.RedirectEvaluator;
-import de.rub.nds.siwecos.validator.ValidatorCallback;
+import de.rub.nds.siwecos.validator.dns.DnsQuery;
 import de.rub.nds.siwecos.validator.json.TestResult;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -23,7 +28,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.validator.UrlValidator;
 import org.apache.logging.log4j.LogManager;
+import org.xbill.DNS.MXRecord;
 
 /**
  *
@@ -46,33 +53,79 @@ public class ScannerWS {
     @Path("/validate")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response scanHttps(ScanRequest request) throws URISyntaxException {
-        LOGGER.info("Validatating: " + request.getUrl());
+        LOGGER.info("Validating: " + request.getUrl());
+        String[] schemes = {"http", "https"};
+        if (!(request.getUrl().toLowerCase().contains("http") || request.getUrl().toLowerCase().contains("https"))) {
+            LOGGER.info("No protocol specified for " + request.getUrl() + " assuming http");
+            request.setUrl("http://" + request.getUrl());
+        }
+        UrlValidator urlValidator = new UrlValidator(schemes);
+        boolean valid = urlValidator.isValid(request.getUrl());
+        if (!valid) {
+            LOGGER.info("URL:" + request.getUrl() + " is not valid for us");
+            TestResult result = new TestResult("Validator", false, null, request.getUrl(), null, false, null, null,
+                    null);
+            return Response.status(Response.Status.OK).entity(testResultToJson(result))
+                    .type(MediaType.APPLICATION_JSON).build();
+        }
         try {
-            URL url = null;
+            URI uri = null;
 
-            Boolean syntaxCorrect;
+            Boolean syntaxCorrect = false;
             String domain = null;
             try {
-                url = new URL(request.getUrl());
+                uri = new URI(request.getUrl());
                 syntaxCorrect = true;
-                domain = url.getHost();
-
-            } catch (MalformedURLException E) {
-                syntaxCorrect = false;
+                domain = uri.getHost();
+                if (domain == null) {
+                    domain = request.getUrl();
+                }
+            } catch (URISyntaxException E) {
+                LOGGER.warn(E);
             }
-            RedirectEvaluator evaluator = new RedirectEvaluator(request.getUrl(), request.getUseragent());
+            boolean dnsResolves = DnsQuery.isDnsResolvable(domain);
             String targetUrl = request.getUrl();
-            if (evaluator.isRedirecting()) {
-                url = evaluator.getNewUrl();
+            Boolean isRedirecting = null;
+            if (dnsResolves) {
+                RedirectEvaluator evaluator = new RedirectEvaluator(request.getUrl(), request.getUseragent());
+                if (evaluator.isRedirecting()) {
+                    targetUrl = evaluator.getNewUrl();
+                }
+                isRedirecting = evaluator.isRedirecting();
             }
-            TestResult result = new TestResult("Validator", false, domain, request.getUrl(), url, syntaxCorrect, syntaxCorrect, syntaxCorrect, mailServerUrlList), urlToScan, true, true, true, mailServerUrlList
-            )
-            return Response.status(Response.Status.OK).entity("Success").type(MediaType.APPLICATION_JSON).build();
+            List<URI> mailUrlList;
+            mailUrlList = new LinkedList<>();
+            if (dnsResolves) {
+                List<MXRecord> mxRecords = DnsQuery.getMxRecords(domain);
+                for (MXRecord mxRecord : mxRecords) {
+                    mailUrlList.add(new URI(mxRecord.getTarget().toString()));
+                }
+            }
+
+            TestResult result = new TestResult("Validator", false, domain, request.getUrl(), targetUrl, syntaxCorrect,
+                    dnsResolves, isRedirecting, mailUrlList);
+
+            return Response.status(Response.Status.OK).entity(testResultToJson(result))
+                    .type(MediaType.APPLICATION_JSON).build();
 
         } catch (Exception E) {
+            E.printStackTrace();
+            LOGGER.warn(E);
             TestResult result = new TestResult("Validator", true, null, request.getUrl(), null, null, null, null, null);
-            return Response.status(Response.Status.OK).entity("Success").type(MediaType.APPLICATION_JSON).build();
+            return Response.status(Response.Status.OK).entity(testResultToJson(result))
+                    .type(MediaType.APPLICATION_JSON).build();
         }
+    }
+
+    public String testResultToJson(TestResult result) {
+        ObjectMapper ow = new ObjectMapper();
+        String json = "";
+        try {
+            json = ow.writeValueAsString(result);
+        } catch (JsonProcessingException ex) {
+            LOGGER.error("Could not convert to json", ex);
+        }
+        return json;
     }
 
     @POST

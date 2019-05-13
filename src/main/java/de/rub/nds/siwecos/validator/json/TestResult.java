@@ -1,7 +1,7 @@
 /**
- *  SIWECOS-TLS-Scanner - A Webservice for the TLS-Scanner Module of TLS-Attacker
+ *  SIWECOS-Host-Validator - A Webservice for the Siwecos Infrastructure to validate user provided hosts
  *
- *  Copyright 2014-2017 Ruhr University Bochum / Hackmanit GmbH
+ *  Copyright 2019 Ruhr University Bochum / Hackmanit GmbH
  *
  *  Licensed under Apache License 2.0
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -9,6 +9,7 @@
  */
 package de.rub.nds.siwecos.validator.json;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
@@ -30,22 +31,22 @@ public class TestResult {
 
     private Boolean urlIsSyntacticalOk;
 
-    private Boolean hostIsAlive;
+    private Boolean dnsResolves;
 
     private Boolean httpRedirect;
 
-    private List<URL> mailServerUrlList;
+    private List<URI> mailServerDomainList;
 
-    public TestResult(String name, Boolean hasError, String domain, String originalUrl, String urlToScan, Boolean urlIsSyntacticalOk, Boolean hostIsAlive, Boolean httpRedirect, List<URL> mailServerUrlList) {
+    public TestResult(String name, Boolean hasError, String domain, String originalUrl, String urlToScan, Boolean urlIsSyntacticalOk, Boolean dnsResolves, Boolean httpRedirect, List<URI> mailServerDomainList) {
         this.name = name;
         this.hasError = hasError;
         this.domain = domain;
         this.originalUrl = originalUrl;
         this.urlToScan = urlToScan;
         this.urlIsSyntacticalOk = urlIsSyntacticalOk;
-        this.hostIsAlive = hostIsAlive;
+        this.dnsResolves = dnsResolves;
         this.httpRedirect = httpRedirect;
-        this.mailServerUrlList = mailServerUrlList;
+        this.mailServerDomainList = mailServerDomainList;
     }
 
     public String getName() {
@@ -96,12 +97,12 @@ public class TestResult {
         this.urlIsSyntacticalOk = urlIsSyntacticalOk;
     }
 
-    public Boolean getHostIsAlive() {
-        return hostIsAlive;
+    public Boolean getDnsResolves() {
+        return dnsResolves;
     }
 
-    public void setHostIsAlive(Boolean hostIsAlive) {
-        this.hostIsAlive = hostIsAlive;
+    public void setDnsResolves(Boolean dnsResolves) {
+        this.dnsResolves = dnsResolves;
     }
 
     public Boolean getHttpRedirect() {
@@ -112,11 +113,11 @@ public class TestResult {
         this.httpRedirect = httpRedirect;
     }
 
-    public List<URL> getMailServerUrlList() {
-        return mailServerUrlList;
+    public List<URI> getMailServerDomainList() {
+        return mailServerDomainList;
     }
 
-    public void setMailServerUrlList(List<URL> mailServerUrlList) {
-        this.mailServerUrlList = mailServerUrlList;
+    public void setMailServerDomainList(List<URI> mailServerDomainList) {
+        this.mailServerDomainList = mailServerDomainList;
     }
 }

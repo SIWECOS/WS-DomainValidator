@@ -1,50 +1,43 @@
-# WS-TLS-Scanner
-WS-TLS-Scanner is a Webservice created by the Chair for Network and Data Security from the Ruhr-University Bochum for the integration of the [TLS-Scanner](https://github.com/RUB-NDS/TLS-Scanner) in the SIWECOS Project. The Webservice scans a provided URL for various TLS misconfigurations and responds with a JSON report.
+# WS-DomainValidator
+WS-DomainValidator is a webservice created by the Chair for Network and Data Security from the Ruhr-University Bochum for the SIWECOS Project. The Webservice checks a provided URL syntactical correctnes, extracts the domain, extracts possible HTTP redirects and retrieves the DNS MX-Records for the responsible mail server domains.
 
 # Compiling
-In order to compile and use WS-TLS-Scanner, you need to have Java installed, as well as [TLS-Attacker](https://github.com/RUB-NDS/TLS-Attacker), [ModifiableVariables](https://github.com/RUB-NDS/ModifiableVariable) and the [TLS-Scanner](https://github.com/RUB-NDS/TLS-Scanner)
+In order to compile and use WS-DomainValidator, you need to have java (OpenJDK 8) installed, as well as maven.
 
 ```bash
-$ cd WS-TLS-Scanner
+$ cd WS-DomainValidator
 $ mvn clean package
 
 ```
 
-For hints on installing the required libraries checkout the corresponding GitHub repositories.
-
-**Please note:**  *In order to run this tool you need TLS-Attacker 2.6*
-
 # Running
-In order to run WS-TLS-Scanner you need to deploy the .war file from the target/ folder to your favourite java application server (eg. Glassfish, Tomcat ...). After that the webservice should be up and running and can be called by sending a POST like
+In order to run WS-DomainValidator you need to deploy the .war file from the target/ folder to your favourite java application server (eg. Glassfish, Tomcat ...). After that the webservice should be up and running and can be called by sending a POST like
 ```
 {
-  "url": "google.de",
-  "dangerLevel": 0,
-  "callbackurls": [
-    "http://127.0.0.1:8080"
-  ]
+  "url": "https://google.de",
+  "useragent": "Mozilla/5.0 (X11; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
+  
 }
 ```
 to
 ```
-http://127.0.0.1:8080/WS-TLS-Scanner-2.4/start
+http://127.0.0.1:8080/WS-HostValidator/validate
 ```
 
 or 
 
 ```
-http://127.0.0.1:8080/start
+http://127.0.0.1:8080/validate
 ```
 Depending on your application server.
 
 # Results
-TLS-Scanner uses the concept of "checks" which are performed after it collected configuration information. A check which results in "true" is consideres a non optimal choice and is an indicator for a pentester for a possible problem.
-
+The webservice will do various sanity checks and dns queries and will then directy return the result like this: 
 An example output may look like this:
 ```json
 
 {
-  "name" : "TLS",
+  "name" : "Validator",
   "hasError" : false,
   "errorMessage" : null,
   "score" : 0,
@@ -275,16 +268,14 @@ An example output may look like this:
 
 
 
-For more information on the interpretation of this output checkout the [TLS-Scanner](https://github.com/RUB-NDS/TLS-Scanner) repository.
-
 # Docker
-You can also run WS-TLS-Scanner with Docker. You can build with:
+You can also run WS-HostValidator with Docker. You can build with:
 ```
-docker build . -t tls-scanner
+docker build . -t validator
 ```
 You can then run it with:
 ```
-docker run -it --network host tls-scanner
+docker run -it --network host validator
 ```
 The webservice is then reachable under:
 ```

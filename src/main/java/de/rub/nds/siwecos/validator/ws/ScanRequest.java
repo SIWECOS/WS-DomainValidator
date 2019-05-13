@@ -1,7 +1,7 @@
 /**
- *  SIWECOS-TLS-Scanner - A Webservice for the TLS-Scanner Module of TLS-Attacker
+ *  SIWECOS-Host-Validator - A Webservice for the Siwecos Infrastructure to validate user provided hosts
  *
- *  Copyright 2014-2017 Ruhr University Bochum / Hackmanit GmbH
+ *  Copyright 2019 Ruhr University Bochum / Hackmanit GmbH
  *
  *  Licensed under Apache License 2.0
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -15,9 +15,12 @@ package de.rub.nds.siwecos.validator.ws;
  */
 public class ScanRequest {
 
-    private final String url;
+    private String url;
 
-    private final String useragent;
+    private String useragent;
+
+    public ScanRequest() {
+    }
 
     public ScanRequest(String url, String useragent) {
         this.url = url;
@@ -30,6 +33,14 @@ public class ScanRequest {
 
     public String getUseragent() {
         return useragent;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setUseragent(String useragent) {
+        this.useragent = useragent;
     }
 
     @Override
