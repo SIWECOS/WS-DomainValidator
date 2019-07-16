@@ -1,14 +1,10 @@
-de/rub/nds/siwecos/validator/config/WsConfig.class
-de/rub/nds/siwecos/validator/ws/PoolManager.class
 de/rub/nds/siwecos/validator/ws/DebugOutput.class
 de/rub/nds/siwecos/validator/json/TestResult.class
-de/rub/nds/siwecos/validator/ws/PoolManager$PoolManagerHolder.class
+de/rub/nds/siwecos/validator/crawler/UrlCrawler.class
 de/rub/nds/siwecos/validator/ws/ScanRequest.class
 de/rub/nds/siwecos/validator/DebugManager.class
 de/rub/nds/siwecos/validator/Main.class
 de/rub/nds/siwecos/validator/ws/PoolsizeChangeRequest.class
 de/rub/nds/siwecos/validator/ApplicationConfig.class
 de/rub/nds/siwecos/validator/RedirectEvaluator.class
-de/rub/nds/siwecos/validator/ws/ScannerWS.class
-de/rub/nds/siwecos/validator/ws/PoolManager$1.class
 de/rub/nds/siwecos/validator/dns/DnsQuery.class

@@ -37,7 +37,8 @@ public class TestResult {
 
     private List<URI> mailServerDomainList;
 
-    public TestResult(String name, Boolean hasError, String domain, String originalUrl, String urlToScan, Boolean urlIsSyntacticalOk, Boolean dnsResolves, Boolean httpRedirect, List<URI> mailServerDomainList) {
+    public TestResult(String name, Boolean hasError, String domain, String originalUrl, String urlToScan,
+            Boolean urlIsSyntacticalOk, Boolean dnsResolves, Boolean httpRedirect, List<URI> mailServerDomainList) {
         this.name = name;
         this.hasError = hasError;
         this.domain = domain;

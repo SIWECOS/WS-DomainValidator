@@ -17,34 +17,34 @@ public class ScanRequest {
 
     private String url;
 
-    private String useragent;
+    private String userAgent;
 
     public ScanRequest() {
     }
 
     public ScanRequest(String url, String useragent) {
         this.url = url;
-        this.useragent = useragent;
+        this.userAgent = useragent;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public String getUseragent() {
-        return useragent;
+    public String getUserAgent() {
+        return userAgent;
     }
 
     public void setUrl(String url) {
         this.url = url;
     }
 
-    public void setUseragent(String useragent) {
-        this.useragent = useragent;
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 
     @Override
     public String toString() {
-        return "ScanRequest{" + "url=" + url + ", useragent=" + useragent + '}';
+        return "ScanRequest{" + "url=" + url + ", useragent=" + userAgent + '}';
     }
 }

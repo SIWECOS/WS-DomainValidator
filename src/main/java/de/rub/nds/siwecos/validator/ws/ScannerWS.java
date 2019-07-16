@@ -13,12 +13,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.rub.nds.siwecos.validator.DebugManager;
 import de.rub.nds.siwecos.validator.RedirectEvaluator;
+import de.rub.nds.siwecos.validator.crawler.Crawler;
 import de.rub.nds.siwecos.validator.dns.DnsQuery;
 import de.rub.nds.siwecos.validator.json.TestResult;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import javax.ws.rs.Consumes;
@@ -54,7 +53,7 @@ public class ScannerWS {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response scanHttps(ScanRequest request) throws URISyntaxException {
         LOGGER.info("Validating: " + request.getUrl());
-        String[] schemes = {"http", "https"};
+        String[] schemes = { "http", "https" };
         if (!(request.getUrl().toLowerCase().contains("http") || request.getUrl().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getUrl() + " assuming http");
             request.setUrl("http://" + request.getUrl());
@@ -69,6 +68,9 @@ public class ScannerWS {
                     .type(MediaType.APPLICATION_JSON).build();
         }
         try {
+
+            Crawler crawler = new Crawler(request.getUrl());
+            crawler.crawl(10, 10);
             URI uri = null;
 
             Boolean syntaxCorrect = false;
@@ -87,7 +89,7 @@ public class ScannerWS {
             String targetUrl = request.getUrl();
             Boolean isRedirecting = null;
             if (dnsResolves) {
-                RedirectEvaluator evaluator = new RedirectEvaluator(request.getUrl(), request.getUseragent());
+                RedirectEvaluator evaluator = new RedirectEvaluator(request.getUrl(), request.getUserAgent());
                 if (evaluator.isRedirecting()) {
                     targetUrl = evaluator.getNewUrl();
                 }
