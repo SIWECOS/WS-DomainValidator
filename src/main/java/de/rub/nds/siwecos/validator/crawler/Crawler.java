@@ -7,11 +7,6 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.rub.nds.siwecos.validator.crawler;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
@@ -20,8 +15,11 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.uci.ics.crawler4j.url.WebURL;
 import java.net.URI;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,28 +37,31 @@ public class Crawler extends WebCrawler {
         this.startUri = startUri;
     }
 
-    public List<URI> crawl(int maxResults, int depth) {
+    public List<URI> crawl(int maxResults, int depth, String userAgent) {
         CrawlConfig config = new CrawlConfig();
 
         // Set the folder where intermediate crawl data is stored (e.g. list of urls that are extracted from previously
         // fetched pages and need to be crawled later).
         config.setCrawlStorageFolder("/tmp/crawler4j/");
 
-        // Be polite: Make sure that we don't send more than 1 request per second (1000 milliseconds between requests).
-        // Otherwise it may overload the target servers.
         config.setPolitenessDelay(5);
 
         // You can set the maximum crawl depth here. The default value is -1 for unlimited depth.
-        config.setMaxDepthOfCrawling(2);
+        config.setMaxDepthOfCrawling(depth);
 
         // You can set the maximum number of pages to crawl. The default value is -1 for unlimited number of pages.
-        config.setMaxPagesToFetch(10);
+        config.setMaxPagesToFetch(maxResults);
 
         // Should binary data should also be crawled? example: the contents of pdf, or the metadata of images etc
         config.setIncludeBinaryContentInCrawling(false);
         config.setResumableCrawling(false);
         config.setFollowRedirects(true);
-
+        config.setThreadShutdownDelaySeconds(0);
+        config.setThreadMonitoringDelaySeconds(1);
+        config.setCleanupDelaySeconds(1);
+        config.setShutdownOnEmptyQueue(true);
+        config.setUserAgentString(userAgent);
+        List<URI> uriList = new LinkedList<>();
         PageFetcher pageFetcher = new PageFetcher(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
@@ -69,28 +70,20 @@ public class Crawler extends WebCrawler {
             controller = new CrawlController(config, pageFetcher, robotstxtServer);
             controller.addSeed(startUri);
             int numberOfCrawlers = 1;
-            CrawlController.WebCrawlerFactory<WebCrawler> factory = () -> new WebCrawler();
+            CrawlController.WebCrawlerFactory<WebCrawler> factory = () -> new UrlCrawler();
             controller.start(factory, numberOfCrawlers);
             controller.waitUntilFinish();
             List<Object> crawlersLocalData = controller.getCrawlersLocalData();
-            long totalLinks = 0;
-            long totalTextSize = 0;
-            int totalProcessedPages = 0;
             for (Object localData : crawlersLocalData) {
-                CrawlStat stat = (CrawlStat) localData;
-                totalLinks += stat.getTotalLinks();
-                totalTextSize += stat.getTotalTextSize();
-                totalProcessedPages += stat.getTotalProcessedPages();
+                Set<WebURL> urlSet = (Set<WebURL>) localData;
+                LOGGER.info("Crawled " + urlSet.size() + " urls");
+                for (WebURL url : urlSet) {
+                    uriList.add(new URI(url.getURL()));
+                }
             }
-
-            logger.info("Aggregated Statistics:");
-            logger.info("\tProcessed Pages: {}", totalProcessedPages);
-            logger.info("\tTotal Links found: {}", totalLinks);
-            logger.info("\tTotal Text Size: {}", totalTextSize);
         } catch (Exception ex) {
             LOGGER.error(ex);
         }
-
-        return null;
+        return uriList;
     }
 }

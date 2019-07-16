@@ -7,17 +7,49 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.rub.nds.siwecos.validator.crawler;
+
+import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.url.WebURL;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author ic0ns
  */
-public class UrlCrawler {
-
+public class UrlCrawler extends WebCrawler {
+    
+    private final static Pattern EXCLUSIONS = Pattern.compile(".*(\\.(css|js|xml|gif|jpg|png|mp3|mp4|zip|gz|pdf|svg|rdf))$");
+    
+    private Set<WebURL> links = new HashSet<>();
+    
+    @Override
+    public Object getMyLocalData() {
+        return links;
+    }
+    
+    @Override
+    public void visit(Page page) {
+        String url = page.getWebURL().getURL();
+        if (page.getParseData() instanceof HtmlParseData) {
+            HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
+            for (WebURL tempUrl : htmlParseData.getOutgoingUrls()) {
+                if (shouldVisit(page, tempUrl)) {
+                    links.add(tempUrl);
+                }
+            }
+        }
+    }
+    
+    @Override
+    public boolean shouldVisit(Page referringPage, WebURL url) {
+        String urlString = url.getURL().toLowerCase();
+        return !EXCLUSIONS.matcher(urlString).matches()
+                && referringPage.getWebURL().getDomain().equals(url.getDomain());
+    }
+    
 }

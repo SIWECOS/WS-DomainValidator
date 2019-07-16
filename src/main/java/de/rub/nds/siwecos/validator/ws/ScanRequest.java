@@ -19,32 +19,66 @@ public class ScanRequest {
 
     private String userAgent;
 
+    private Boolean crawl;
+
+    private Integer maxCount;
+
+    private Integer maxDepth;
+
     public ScanRequest() {
     }
 
-    public ScanRequest(String url, String useragent) {
+    public ScanRequest(String url, String userAgent, Boolean noCrawl, Integer maxCount, Integer maxDepth) {
         this.url = url;
-        this.userAgent = useragent;
+        this.userAgent = userAgent;
+        this.crawl = noCrawl;
+        this.maxCount = maxCount;
+        this.maxDepth = maxDepth;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public String getUserAgent() {
-        return userAgent;
-    }
-
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
     }
 
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
 
+    public Boolean getCrawl() {
+        return crawl;
+    }
+
+    public void setCrawl(Boolean crawl) {
+        this.crawl = crawl;
+    }
+
+    public Integer getMaxCount() {
+        return maxCount;
+    }
+
+    public void setMaxCount(Integer maxCount) {
+        this.maxCount = maxCount;
+    }
+
+    public Integer getMaxDepth() {
+        return maxDepth;
+    }
+
+    public void setMaxDepth(Integer maxDepth) {
+        this.maxDepth = maxDepth;
+    }
+
     @Override
     public String toString() {
-        return "ScanRequest{" + "url=" + url + ", useragent=" + userAgent + '}';
+        return "ScanRequest{" + "url=" + url + ", userAgent=" + userAgent + ", noCrawl=" + crawl + ", maxCount=" + maxCount + ", maxDepth=" + maxDepth + '}';
     }
+
 }

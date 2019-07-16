@@ -7,8 +7,6 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  */
-/*
- */
 package de.rub.nds.siwecos.validator;
 
 import java.io.IOException;
