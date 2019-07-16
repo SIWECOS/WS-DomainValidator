@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -53,7 +54,10 @@ public class ScannerWS {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response scanHttps(ScanRequest request) throws URISyntaxException {
         LOGGER.info("Validating: " + request.getUrl());
-        String[] schemes = { "http", "https" };
+        if (request.getUserAgent() == null) {
+            request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
+        }
+        String[] schemes = {"http", "https"};
         if (!(request.getUrl().toLowerCase().contains("http") || request.getUrl().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getUrl() + " assuming http");
             request.setUrl("http://" + request.getUrl());
@@ -69,8 +73,6 @@ public class ScannerWS {
         }
         try {
 
-            Crawler crawler = new Crawler(request.getUrl());
-            crawler.crawl(10, 10);
             URI uri = null;
 
             Boolean syntaxCorrect = false;
@@ -100,13 +102,34 @@ public class ScannerWS {
             if (dnsResolves) {
                 List<MXRecord> mxRecords = DnsQuery.getMxRecords(domain);
                 for (MXRecord mxRecord : mxRecords) {
-                    mailUrlList.add(new URI(mxRecord.getTarget().toString()));
+                    mailUrlList.add(new URI(mxRecord.getTarget().toString().substring(0, mxRecord.getTarget().toString().length() - 1)));
+                }
+            }
+            List<URI> crawledDomains = new LinkedList<>();
+            if (Objects.equals(request.getCrawl(), Boolean.TRUE)) {
+                Crawler crawler = new Crawler(request.getUrl());
+                if (request.getMaxCount() == null) {
+                    request.setMaxCount(10);
+                }
+
+                if (request.getMaxDepth() == null) {
+                    request.setMaxDepth(4);
+                }
+
+                List<URI> tempCrawledUrls = crawler.crawl(request.getMaxCount(), request.getMaxDepth(), request.getUserAgent());
+                int i = 0;
+                for (URI tempUri : tempCrawledUrls) {
+
+                    if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()) {
+                        crawledDomains.add(tempUri);
+                        i++;
+                    }
                 }
             }
 
             TestResult result = new TestResult("Validator", false, domain, request.getUrl(), targetUrl, syntaxCorrect,
                     dnsResolves, isRedirecting, mailUrlList);
-
+            result.setCrawledDomains(crawledDomains);
             return Response.status(Response.Status.OK).entity(testResultToJson(result))
                     .type(MediaType.APPLICATION_JSON).build();
 
