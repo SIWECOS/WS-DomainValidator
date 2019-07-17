@@ -14,7 +14,7 @@ $ mvn clean package
 In order to run WS-DomainValidator you need to deploy the .war file from the target/ folder to your favourite java application server (eg. Glassfish, Tomcat ...). After that the webservice should be up and running and can be called by sending a POST like
 ```
 {
-  "url": "https://google.de",
+  "domain": "https://google.de",
   "crawl": true,
   "maxCount": 10,
   "maxDepth": 2,

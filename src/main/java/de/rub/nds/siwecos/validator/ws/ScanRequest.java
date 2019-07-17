@@ -15,7 +15,7 @@ package de.rub.nds.siwecos.validator.ws;
  */
 public class ScanRequest {
 
-    private String url;
+    private String domain;
 
     private String userAgent;
 
@@ -29,19 +29,19 @@ public class ScanRequest {
     }
 
     public ScanRequest(String url, String userAgent, Boolean noCrawl, Integer maxCount, Integer maxDepth) {
-        this.url = url;
+        this.domain = url;
         this.userAgent = userAgent;
         this.crawl = noCrawl;
         this.maxCount = maxCount;
         this.maxDepth = maxDepth;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDomain() {
+        return domain;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public String getUserAgent() {
@@ -78,7 +78,7 @@ public class ScanRequest {
 
     @Override
     public String toString() {
-        return "ScanRequest{" + "url=" + url + ", userAgent=" + userAgent + ", noCrawl=" + crawl + ", maxCount=" + maxCount + ", maxDepth=" + maxDepth + '}';
+        return "ScanRequest{" + "url=" + domain + ", userAgent=" + userAgent + ", noCrawl=" + crawl + ", maxCount=" + maxCount + ", maxDepth=" + maxDepth + '}';
     }
 
 }

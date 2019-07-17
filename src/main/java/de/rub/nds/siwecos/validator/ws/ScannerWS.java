@@ -53,20 +53,20 @@ public class ScannerWS {
     @Path("/validate")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response scanHttps(ScanRequest request) throws URISyntaxException {
-        LOGGER.info("Validating: " + request.getUrl());
+        LOGGER.info("Validating: " + request.getDomain());
         if (request.getUserAgent() == null) {
             request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
         }
         String[] schemes = {"http", "https"};
-        if (!(request.getUrl().toLowerCase().contains("http") || request.getUrl().toLowerCase().contains("https"))) {
-            LOGGER.info("No protocol specified for " + request.getUrl() + " assuming http");
-            request.setUrl("http://" + request.getUrl());
+        if (!(request.getDomain().toLowerCase().contains("http") || request.getDomain().toLowerCase().contains("https"))) {
+            LOGGER.info("No protocol specified for " + request.getDomain() + " assuming http");
+            request.setDomain("http://" + request.getDomain());
         }
         UrlValidator urlValidator = new UrlValidator(schemes);
-        boolean valid = urlValidator.isValid(request.getUrl());
+        boolean valid = urlValidator.isValid(request.getDomain());
         if (!valid) {
-            LOGGER.info("URL:" + request.getUrl() + " is not valid for us");
-            TestResult result = new TestResult("Validator", false, null, request.getUrl(), null, false, null, null,
+            LOGGER.info("URL:" + request.getDomain() + " is not valid for us");
+            TestResult result = new TestResult("Validator", false, null, request.getDomain(), null, false, null, null,
                     null);
             return Response.status(Response.Status.OK).entity(testResultToJson(result))
                     .type(MediaType.APPLICATION_JSON).build();
@@ -78,20 +78,20 @@ public class ScannerWS {
             Boolean syntaxCorrect = false;
             String domain = null;
             try {
-                uri = new URI(request.getUrl());
+                uri = new URI(request.getDomain());
                 syntaxCorrect = true;
                 domain = uri.getHost();
                 if (domain == null) {
-                    domain = request.getUrl();
+                    domain = request.getDomain();
                 }
             } catch (URISyntaxException E) {
                 LOGGER.warn(E);
             }
             boolean dnsResolves = DnsQuery.isDnsResolvable(domain);
-            String targetUrl = request.getUrl();
+            String targetUrl = request.getDomain();
             Boolean isRedirecting = null;
             if (dnsResolves) {
-                RedirectEvaluator evaluator = new RedirectEvaluator(request.getUrl(), request.getUserAgent());
+                RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
                 if (evaluator.isRedirecting()) {
                     targetUrl = evaluator.getNewUrl();
                 }
@@ -107,7 +107,7 @@ public class ScannerWS {
             }
             List<URI> crawledDomains = new LinkedList<>();
             if (Objects.equals(request.getCrawl(), Boolean.TRUE)) {
-                Crawler crawler = new Crawler(request.getUrl());
+                Crawler crawler = new Crawler(request.getDomain());
                 if (request.getMaxCount() == null) {
                     request.setMaxCount(10);
                 }
@@ -127,7 +127,7 @@ public class ScannerWS {
                 }
             }
 
-            TestResult result = new TestResult("Validator", false, domain, request.getUrl(), targetUrl, syntaxCorrect,
+            TestResult result = new TestResult("Validator", false, domain, request.getDomain(), targetUrl, syntaxCorrect,
                     dnsResolves, isRedirecting, mailUrlList);
             result.setCrawledDomains(crawledDomains);
             return Response.status(Response.Status.OK).entity(testResultToJson(result))
@@ -136,7 +136,7 @@ public class ScannerWS {
         } catch (Exception E) {
             E.printStackTrace();
             LOGGER.warn(E);
-            TestResult result = new TestResult("Validator", true, null, request.getUrl(), null, null, null, null, null);
+            TestResult result = new TestResult("Validator", true, null, request.getDomain(), null, null, null, null, null);
             return Response.status(Response.Status.OK).entity(testResultToJson(result))
                     .type(MediaType.APPLICATION_JSON).build();
         }
