@@ -37,7 +37,7 @@ public class TestResult {
 
     private List<URI> mailServerDomainList;
 
-    private List<URI> crawledDomains;
+    private List<URI> crawledUrls;
 
     public TestResult(String name, Boolean hasError, String domain, String originalUrl, String urlToScan,
             Boolean urlIsSyntacticalOk, Boolean dnsResolves, Boolean httpRedirect, List<URI> mailServerDomainList) {
@@ -52,12 +52,12 @@ public class TestResult {
         this.mailServerDomainList = mailServerDomainList;
     }
 
-    public List<URI> getCrawledDomains() {
-        return crawledDomains;
+    public List<URI> getCrawledUrls() {
+        return crawledUrls;
     }
 
-    public void setCrawledDomains(List<URI> crawledDomains) {
-        this.crawledDomains = crawledDomains;
+    public void setCrawledUrls(List<URI> crawledUrls) {
+        this.crawledUrls = crawledUrls;
     }
 
     public String getName() {

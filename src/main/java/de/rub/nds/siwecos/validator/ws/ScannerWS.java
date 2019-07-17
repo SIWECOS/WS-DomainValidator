@@ -129,7 +129,7 @@ public class ScannerWS {
 
             TestResult result = new TestResult("Validator", false, domain, request.getDomain(), targetUrl, syntaxCorrect,
                     dnsResolves, isRedirecting, mailUrlList);
-            result.setCrawledDomains(crawledDomains);
+            result.setCrawledUrls(crawledDomains);
             return Response.status(Response.Status.OK).entity(testResultToJson(result))
                     .type(MediaType.APPLICATION_JSON).build();
 
