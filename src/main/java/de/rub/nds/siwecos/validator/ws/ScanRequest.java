@@ -25,15 +25,29 @@ public class ScanRequest {
 
     private Integer maxDepth;
 
+    private String[] callbackurls;
+
+    private Boolean allowSubdomains;
+
     public ScanRequest() {
     }
 
-    public ScanRequest(String url, String userAgent, Boolean noCrawl, Integer maxCount, Integer maxDepth) {
-        this.domain = url;
+    public ScanRequest(String domain, String userAgent, Boolean crawl, Integer maxCount, Integer maxDepth, String[] callbackurls, Boolean allowSubdomains) {
+        this.domain = domain;
         this.userAgent = userAgent;
-        this.crawl = noCrawl;
+        this.crawl = crawl;
         this.maxCount = maxCount;
         this.maxDepth = maxDepth;
+        this.callbackurls = callbackurls;
+        this.allowSubdomains = allowSubdomains;
+    }
+
+    public Boolean getAllowSubdomains() {
+        return allowSubdomains;
+    }
+
+    public void setAllowSubdomains(Boolean allowSubdomains) {
+        this.allowSubdomains = allowSubdomains;
     }
 
     public String getDomain() {
@@ -76,9 +90,18 @@ public class ScanRequest {
         this.maxDepth = maxDepth;
     }
 
+    public String[] getCallbackurls() {
+        return callbackurls;
+    }
+
+    public void setCallbackurls(String[] callbackurls) {
+        this.callbackurls = callbackurls;
+    }
+
     @Override
     public String toString() {
-        return "ScanRequest{" + "url=" + domain + ", userAgent=" + userAgent + ", noCrawl=" + crawl + ", maxCount=" + maxCount + ", maxDepth=" + maxDepth + '}';
+        return "ScanRequest{" + "url=" + domain + ", userAgent=" + userAgent + ", noCrawl=" + crawl + ", maxCount="
+                + maxCount + ", maxDepth=" + maxDepth + '}';
     }
 
 }

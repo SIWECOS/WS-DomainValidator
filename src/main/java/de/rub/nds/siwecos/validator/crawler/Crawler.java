@@ -84,6 +84,7 @@ public class Crawler extends WebCrawler {
         } catch (Exception ex) {
             LOGGER.error(ex);
         }
+        LOGGER.info("Returning urilist");
         return uriList;
     }
 }

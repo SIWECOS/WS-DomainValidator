@@ -122,7 +122,16 @@
             <artifactId>crawler4j</artifactId>
             <version>4.4.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.11.1</version>
+        </dependency>  
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.9.8</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>

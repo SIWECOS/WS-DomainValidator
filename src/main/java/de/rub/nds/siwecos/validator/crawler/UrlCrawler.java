@@ -22,16 +22,17 @@ import java.util.regex.Pattern;
  * @author ic0ns
  */
 public class UrlCrawler extends WebCrawler {
-    
-    private final static Pattern EXCLUSIONS = Pattern.compile(".*(\\.(css|js|xml|gif|jpg|png|mp3|mp4|zip|gz|pdf|svg|rdf))$");
-    
+
+    private final static Pattern EXCLUSIONS = Pattern
+            .compile(".*(\\.(css|js|xml|gif|jpg|png|mp3|mp4|zip|gz|pdf|svg|rdf))$");
+
     private Set<WebURL> links = new HashSet<>();
-    
+
     @Override
     public Object getMyLocalData() {
         return links;
     }
-    
+
     @Override
     public void visit(Page page) {
         String url = page.getWebURL().getURL();
@@ -44,12 +45,12 @@ public class UrlCrawler extends WebCrawler {
             }
         }
     }
-    
+
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String urlString = url.getURL().toLowerCase();
         return !EXCLUSIONS.matcher(urlString).matches()
                 && referringPage.getWebURL().getDomain().equals(url.getDomain());
     }
-    
+
 }
