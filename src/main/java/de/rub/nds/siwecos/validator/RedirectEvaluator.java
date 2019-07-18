@@ -51,6 +51,7 @@ public class RedirectEvaluator {
         conn.addRequestProperty("User-Agent", useragent);
         conn.addRequestProperty("Referer", "siwecos.de");
         redirecting = false;
+        
         // normally, 3xx is redirect
         int status = conn.getResponseCode();
         if (status != HttpURLConnection.HTTP_OK) {

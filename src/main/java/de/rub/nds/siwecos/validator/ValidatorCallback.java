@@ -90,6 +90,7 @@ public class ValidatorCallback implements Runnable {
     @Override
     public void run() {
         LOGGER.info("Validating: " + request.getDomain());
+        request.setDomain(request.getDomain().toLowerCase());
         if (request.getAllowSubdomains() == null) {
             request.setAllowSubdomains(Boolean.TRUE);
         }
@@ -140,11 +141,39 @@ public class ValidatorCallback implements Runnable {
             String targetUrl = request.getDomain();
             Boolean isRedirecting = null;
             if (dnsResolves) {
-                RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                if (evaluator.isRedirecting()) {
-                    targetUrl = evaluator.getNewUrl();
+                try {
+                    RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
+                    if (evaluator.isRedirecting()) {
+                        targetUrl = evaluator.getNewUrl();
+                    }
+                    isRedirecting = evaluator.isRedirecting();
+                } catch (Exception E) {
+                    LOGGER.info("Could not retrieve status code for redirection evaluation.");
+                    //Could not check if redirection is present checking with different protocol
+                    if (request.getDomain().toLowerCase().contains("http://")) {
+                        request.setDomain(request.getDomain().replace("http://", "https://"));
+                        LOGGER.info("Rechecking with HTTPS");
+                        RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
+                        if (evaluator.isRedirecting()) {
+                            targetUrl = evaluator.getNewUrl();
+                        }
+                        isRedirecting = evaluator.isRedirecting();
+
+                    } else if (request.getDomain().contains("https://")) {
+                        LOGGER.info("Rechecking with HTTP");
+                        request.setDomain(request.getDomain().replace("https://", "http://"));
+                        
+                        RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
+                        if (evaluator.isRedirecting()) {
+                            targetUrl = evaluator.getNewUrl();
+                        }
+                        isRedirecting = evaluator.isRedirecting();
+                    } else {
+                        LOGGER.error("Cannot retrieve statuscode, likely no http/https supported");
+                        
+                        isRedirecting = null;
+                    }
                 }
-                isRedirecting = evaluator.isRedirecting();
             }
             List<URI> mailUrlList;
             mailUrlList = new LinkedList<>();
