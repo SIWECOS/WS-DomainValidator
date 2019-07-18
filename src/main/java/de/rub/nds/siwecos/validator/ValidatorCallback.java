@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.validator.UrlValidator;
 import org.apache.logging.log4j.LogManager;
 import org.xbill.DNS.MXRecord;
