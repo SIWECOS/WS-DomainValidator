@@ -11,6 +11,7 @@ package de.rub.nds.siwecos.validator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CharMatcher;
 import de.rub.nds.siwecos.validator.crawler.Crawler;
 import de.rub.nds.siwecos.validator.dns.DnsQuery;
 import de.rub.nds.siwecos.validator.json.TestResult;
@@ -18,6 +19,7 @@ import de.rub.nds.siwecos.validator.ws.ScanRequest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.IDN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -26,6 +28,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.validator.UrlValidator;
 import org.apache.logging.log4j.LogManager;
 import org.xbill.DNS.MXRecord;
@@ -98,6 +102,15 @@ public class ValidatorCallback implements Runnable {
             request.setDomain("http://" + request.getDomain());
         }
         UrlValidator urlValidator = new UrlValidator(schemes);
+        LOGGER.info("Testing:" + request.getDomain());
+        String idn;
+        try {
+            idn = convertUnicodeURLToAscii(request.getDomain());
+            LOGGER.info("Converted to :" + idn);
+            request.setDomain(idn);
+        } catch (URISyntaxException ex) {
+            LOGGER.info("Conversion failed", ex);
+        }
         boolean valid = urlValidator.isValid(request.getDomain());
         if (!valid) {
             LOGGER.info("URL:" + request.getDomain() + " is not valid for us");
@@ -120,6 +133,7 @@ public class ValidatorCallback implements Runnable {
                     domain = request.getDomain();
                 }
             } catch (URISyntaxException E) {
+                syntaxCorrect = false;
                 LOGGER.warn(E);
             }
             boolean dnsResolves = DnsQuery.isDnsResolvable(domain);
@@ -173,7 +187,8 @@ public class ValidatorCallback implements Runnable {
                     }
                 }
                 for (URI tempUri : tempCrawledUrls) {
-                    if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount() && !crawledDomains.contains(tempUri.normalize())) {
+                    if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()
+                            && !crawledDomains.contains(tempUri.normalize())) {
                         if (tempUri.getHost().equals(targetUrl) || request.getAllowSubdomains() == Boolean.TRUE) {
 
                             crawledDomains.add(tempUri.normalize());
@@ -224,6 +239,36 @@ public class ValidatorCallback implements Runnable {
                 LOGGER.warn("Failed to callback:" + callback, ex);
             }
         }
+    }
+
+    private String convertUnicodeURLToAscii(String url) throws URISyntaxException {
+        if (url != null) {
+            url = url.trim();
+            // Handle international domains by detecting non-ascii and converting them to punycode
+            boolean isAscii = CharMatcher.ASCII.matchesAllOf(url);
+            if (!isAscii) {
+                URI uri = new URI(url);
+                boolean includeScheme = true;
+
+                // URI needs a scheme to work properly with authority parsing
+                if (uri.getScheme() == null) {
+                    uri = new URI("http://" + url);
+                    includeScheme = false;
+                }
+
+                String scheme = uri.getScheme() != null ? uri.getScheme() + "://" : null;
+                String authority = uri.getRawAuthority() != null ? uri.getRawAuthority() : ""; // includes domain and port
+                String path = uri.getRawPath() != null ? uri.getRawPath() : "";
+                String queryString = uri.getRawQuery() != null ? "?" + uri.getRawQuery() : "";
+
+                // Must convert domain to punycode separately from the path
+                url = (includeScheme ? scheme : "") + IDN.toASCII(authority) + path + queryString;
+
+                // Convert path from unicode to ascii encoding
+                url = new URI(url).toASCIIString();
+            }
+        }
+        return url;
     }
 
     public String testResultToJson(TestResult result) {

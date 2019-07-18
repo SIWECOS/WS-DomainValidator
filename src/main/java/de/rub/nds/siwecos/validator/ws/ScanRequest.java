@@ -32,7 +32,8 @@ public class ScanRequest {
     public ScanRequest() {
     }
 
-    public ScanRequest(String domain, String userAgent, Boolean crawl, Integer maxCount, Integer maxDepth, String[] callbackurls, Boolean allowSubdomains) {
+    public ScanRequest(String domain, String userAgent, Boolean crawl, Integer maxCount, Integer maxDepth,
+            String[] callbackurls, Boolean allowSubdomains) {
         this.domain = domain;
         this.userAgent = userAgent;
         this.crawl = crawl;
