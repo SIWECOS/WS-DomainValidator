@@ -160,7 +160,7 @@ public class ValidatorCallback implements Runnable {
                     } else if (request.getDomain().contains("https://")) {
                         LOGGER.info("Rechecking with HTTP");
                         request.setDomain(request.getDomain().replace("https://", "http://"));
-                        
+
                         RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
                         if (evaluator.isRedirecting()) {
                             targetUrl = evaluator.getNewUrl();
@@ -168,7 +168,7 @@ public class ValidatorCallback implements Runnable {
                         isRedirecting = evaluator.isRedirecting();
                     } else {
                         LOGGER.error("Cannot retrieve statuscode, likely no http/https supported");
-                        
+
                         isRedirecting = null;
                     }
                 }
@@ -203,24 +203,23 @@ public class ValidatorCallback implements Runnable {
                     tempUri.normalize();
                     if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()) {
                         for (String s : prioDomainStrings) {
-                            if (tempUri.getPath() != null && tempUri.getPath().contains(s)) {
-                                if (tempUri.getHost().equals(targetUrl) || request.getAllowSubdomains() == Boolean.TRUE) {
-                                    crawledDomains.add(tempUri.normalize());
-                                    i++;
-                                    break;
-                                }
+                            String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
+                            boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
+                            if (tempUri.getPath() != null && tempUri.getPath().contains(s) && (isNonSubDomain || request.getAllowSubdomains())) {
+                                crawledDomains.add(tempUri.normalize());
+                                i++;
+                                break;
                             }
                         }
                     }
                 }
                 for (URI tempUri : tempCrawledUrls) {
+                    String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
+                    boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
                     if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()
-                            && !crawledDomains.contains(tempUri.normalize())) {
-                        if (tempUri.getHost().equals(targetUrl) || request.getAllowSubdomains() == Boolean.TRUE) {
-
-                            crawledDomains.add(tempUri.normalize());
-                            i++;
-                        }
+                            && !crawledDomains.contains(tempUri.normalize()) && (isNonSubDomain || request.getAllowSubdomains())) {
+                        crawledDomains.add(tempUri.normalize());
+                        i++;
                     }
                 }
                 LOGGER.info("Filtering URI's finished");
