@@ -86,7 +86,6 @@ public class ValidatorCallback implements Runnable {
     @Override
     public void run() {
         LOGGER.info("Validating: " + request.getDomain());
-        System.out.println("" + Arrays.toString(request.getCallbackurls()));
         if (request.getAllowSubdomains() == null) {
             request.setAllowSubdomains(Boolean.TRUE);
         }
@@ -169,7 +168,6 @@ public class ValidatorCallback implements Runnable {
                                     i++;
                                     break;
                                 }
-
                             }
                         }
                     }
