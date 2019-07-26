@@ -1,0 +1,32 @@
+language: generic
+
+dist: trusty
+
+script:
+  - docker build -t domain-validator .
+
+before_deploy:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    on:
+      branch: develop
+    script: >-
+      docker tag domain-validator siwecos/domain-validator:develop &&
+      docker push siwecos/domain-validator:develop
+  - provider: script
+    skip_cleanup: true
+    on:
+      branch: master
+    script: >-
+      docker tag domain-validator siwecos/domain-validator:latest &&
+      docker push siwecos/domain-validator:latest
+  - provider: script
+    skip_cleanup: true
+    on:
+      tags: true
+    script: >-
+      docker tag domain-validator siwecos/domain-validator:$TRAVIS_TAG &&
+      docker push siwecos/domain-validator:$TRAVIS_TAG
