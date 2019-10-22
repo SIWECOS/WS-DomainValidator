@@ -33,6 +33,10 @@ public class TestResult {
 
     private Boolean dnsResolves;
 
+    private Boolean httpCouldConnect;
+
+    private Integer httpStatusCode;
+
     private Boolean httpRedirect;
 
     private List<URI> mailServerDomainList;
@@ -131,4 +135,21 @@ public class TestResult {
     public void setMailServerDomainList(List<URI> mailServerDomainList) {
         this.mailServerDomainList = mailServerDomainList;
     }
+
+    public Boolean getHttpCouldConnect() {
+        return httpCouldConnect;
+    }
+
+    public void setHttpCouldConnect(Boolean httpCouldConnect) {
+        this.httpCouldConnect = httpCouldConnect;
+    }
+
+    public Integer getHttpStatusCode() {
+        return httpStatusCode;
+    }
+
+    public void setHttpStatusCode(Integer httpStatusCode) {
+        this.httpStatusCode = httpStatusCode;
+    }
+
 }

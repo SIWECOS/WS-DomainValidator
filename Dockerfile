@@ -1,14 +1,15 @@
 FROM maven:3.6.0-jdk-8-slim AS BUILDER
+RUN apt update \
+    && apt-get upgrade -y \
+    && apt install -y git \
+    && rm -r /var/lib/apt/lists/*
+
 COPY src /src/WS-DomainValidator/src
 COPY pom.xml /src/WS-DomainValidator
 COPY maven-eclipse-codestyle.xml /src/WS-DomainValidator
 COPY license_header_plain.txt /src/WS-DomainValidator
 WORKDIR /src
 
-RUN apt update \
-    && apt-get upgrade -y \
-    && apt install -y git \
-    && rm -r /var/lib/apt/lists/*
 
 RUN mvn -f /src/WS-DomainValidator/pom.xml clean package
 

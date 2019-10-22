@@ -16,7 +16,6 @@ import de.rub.nds.siwecos.validator.crawler.Crawler;
 import de.rub.nds.siwecos.validator.dns.DnsQuery;
 import de.rub.nds.siwecos.validator.json.TestResult;
 import de.rub.nds.siwecos.validator.ws.ScanRequest;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.IDN;
@@ -138,16 +137,21 @@ public class ValidatorCallback implements Runnable {
             boolean dnsResolves = DnsQuery.isDnsResolvable(domain);
             String targetUrl = request.getDomain();
             Boolean isRedirecting = null;
+            Boolean isConnectableHTTP = false;
+            Integer statusCode = null;
             if (dnsResolves) {
                 try {
                     RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
                     if (evaluator.isRedirecting()) {
                         targetUrl = evaluator.getNewUrl();
                     }
+                    statusCode = evaluator.getStatusCode();
+                    isConnectableHTTP = evaluator.isCouldConnect();
                     isRedirecting = evaluator.isRedirecting();
                 } catch (Exception E) {
                     LOGGER.info("Could not retrieve status code for redirection evaluation.");
-                    //Could not check if redirection is present checking with different protocol
+                    // Could not check if redirection is present checking with
+                    // different protocol
                     if (request.getDomain().toLowerCase().contains("http://")) {
                         request.setDomain(request.getDomain().replace("http://", "https://"));
                         LOGGER.info("Rechecking with HTTPS");
@@ -155,6 +159,9 @@ public class ValidatorCallback implements Runnable {
                         if (evaluator.isRedirecting()) {
                             targetUrl = evaluator.getNewUrl();
                         }
+
+                        statusCode = evaluator.getStatusCode();
+                        isConnectableHTTP = evaluator.isCouldConnect();
                         isRedirecting = evaluator.isRedirecting();
 
                     } else if (request.getDomain().contains("https://")) {
@@ -205,7 +212,8 @@ public class ValidatorCallback implements Runnable {
                         for (String s : prioDomainStrings) {
                             String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
                             boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
-                            if (tempUri.getPath() != null && tempUri.getPath().contains(s) && (isNonSubDomain || request.getAllowSubdomains())) {
+                            if (tempUri.getPath() != null && tempUri.getPath().contains(s)
+                                    && (isNonSubDomain || request.getAllowSubdomains())) {
                                 crawledDomains.add(tempUri.normalize());
                                 i++;
                                 break;
@@ -213,21 +221,37 @@ public class ValidatorCallback implements Runnable {
                         }
                     }
                 }
+                String urlToScan = targetUrl.replace("https://", "").replace("http://", "").replace("/", "");
                 for (URI tempUri : tempCrawledUrls) {
-                    String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
-                    boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
-                    if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()
-                            && !crawledDomains.contains(tempUri.normalize()) && (isNonSubDomain || request.getAllowSubdomains())) {
-                        crawledDomains.add(tempUri.normalize());
-                        i++;
+
+                    if (urlValidator.isValid(tempUri.toString())) {
+                        if (i < request.getMaxCount()) {
+                            if (!crawledDomains.contains(tempUri.normalize())) {
+                                if (urlToScan.equals(tempUri.getHost()) || request.getAllowSubdomains()) {
+                                    crawledDomains.add(tempUri.normalize());
+                                    LOGGER.debug("Added:" + tempUri.normalize().toASCIIString());
+                                    i++;
+                                } else {
+                                    LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - subdomain not conform");
+                                }
+                            } else {
+                                LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - duplicate");
+                            }
+                        } else {
+                            LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - already got enough ");
+                        }
+                    } else {
+                        LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - not valid");
                     }
+                    LOGGER.info("Filtering URI's finished");
                 }
-                LOGGER.info("Filtering URI's finished");
             }
 
             TestResult result = new TestResult("Validator", false, domain, request.getDomain(), targetUrl,
                     syntaxCorrect, dnsResolves, isRedirecting, mailUrlList);
             result.setCrawledUrls(crawledDomains);
+            result.setHttpStatusCode(statusCode);
+            result.setHttpCouldConnect(isConnectableHTTP);
             LOGGER.debug("Finished validation. Calling back");
             answer(result);
         } catch (Exception E) {
@@ -236,7 +260,6 @@ public class ValidatorCallback implements Runnable {
                     null);
             answer(result);
         }
-
     }
 
     public void answer(TestResult result) {
@@ -271,7 +294,8 @@ public class ValidatorCallback implements Runnable {
     private String convertUnicodeURLToAscii(String url) throws URISyntaxException {
         if (url != null) {
             url = url.trim();
-            // Handle international domains by detecting non-ascii and converting them to punycode
+            // Handle international domains by detecting non-ascii and
+            // converting them to punycode
             boolean isAscii = CharMatcher.ASCII.matchesAllOf(url);
             if (!isAscii) {
                 URI uri = new URI(url);
@@ -284,7 +308,10 @@ public class ValidatorCallback implements Runnable {
                 }
 
                 String scheme = uri.getScheme() != null ? uri.getScheme() + "://" : null;
-                String authority = uri.getRawAuthority() != null ? uri.getRawAuthority() : ""; // includes domain and port
+                String authority = uri.getRawAuthority() != null ? uri.getRawAuthority() : ""; // includes
+                // domain
+                // and
+                // port
                 String path = uri.getRawPath() != null ? uri.getRawPath() : "";
                 String queryString = uri.getRawQuery() != null ? "?" + uri.getRawQuery() : "";
 

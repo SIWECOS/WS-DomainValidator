@@ -48,7 +48,8 @@ public class ScannerWS {
         LOGGER.info("Received a request to validate: " + request.getDomain());
         if (request.getCallbackurls() == null || request.getCallbackurls().length == 0) {
             LOGGER.warn("No callback urls provided");
-            return Response.status(Response.Status.BAD_REQUEST).entity("No callback urls provided").type(MediaType.TEXT_PLAIN_TYPE).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("No callback urls provided")
+                    .type(MediaType.TEXT_PLAIN_TYPE).build();
         }
         PoolManager.getInstance().getService().submit(new ValidatorCallback(request));
         return Response.status(Response.Status.OK).entity("Success").type(MediaType.TEXT_PLAIN_TYPE).build();
