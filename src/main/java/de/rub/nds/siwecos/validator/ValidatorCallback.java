@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.validator.UrlValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.logging.log4j.LogManager;
 import org.xbill.DNS.MXRecord;
 
@@ -94,7 +94,7 @@ public class ValidatorCallback implements Runnable {
         if (request.getUserAgent() == null) {
             request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
         }
-        String[] schemes = {"http", "https"};
+        String[] schemes = { "http", "https" };
         if (!(request.getDomain().toLowerCase().contains("http") || request.getDomain().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getDomain() + " assuming http");
             request.setDomain("http://" + request.getDomain());
@@ -232,7 +232,8 @@ public class ValidatorCallback implements Runnable {
                                     LOGGER.debug("Added:" + tempUri.normalize().toASCIIString());
                                     i++;
                                 } else {
-                                    LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - subdomain not conform");
+                                    LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString()
+                                            + " - subdomain not conform");
                                 }
                             } else {
                                 LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - duplicate");
