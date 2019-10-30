@@ -94,7 +94,7 @@ public class ValidatorCallback implements Runnable {
         if (request.getUserAgent() == null) {
             request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
         }
-        String[] schemes = { "http", "https" };
+        String[] schemes = {"http", "https"};
         if (!(request.getDomain().toLowerCase().contains("http") || request.getDomain().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getDomain() + " assuming http");
             request.setDomain("http://" + request.getDomain());
@@ -190,61 +190,65 @@ public class ValidatorCallback implements Runnable {
                 }
             }
             List<URI> crawledDomains = new LinkedList<>();
-            if (Objects.equals(request.getCrawl(), Boolean.TRUE)) {
-                Crawler crawler = new Crawler(request.getDomain());
-                if (request.getMaxCount() == null) {
-                    request.setMaxCount(10);
-                }
+            // if we cannot connect we do not need to crawl it.
+            if (isConnectableHTTP) {
+                if (Objects.equals(request.getCrawl(), Boolean.TRUE)) {
+                    Crawler crawler = new Crawler(request.getDomain());
+                    if (request.getMaxCount() == null) {
+                        request.setMaxCount(10);
+                    }
 
-                if (request.getMaxDepth() == null) {
-                    request.setMaxDepth(4);
-                }
+                    if (request.getMaxDepth() == null) {
+                        request.setMaxDepth(4);
+                    }
 
-                List<URI> tempCrawledUrls = crawler.crawl(request.getMaxCount(), request.getMaxDepth(),
-                        request.getUserAgent());
-                int i = 0;
+                    List<URI> tempCrawledUrls = crawler.crawl(request.getMaxCount(), request.getMaxDepth(),
+                            request.getUserAgent());
+                    int i = 0;
 
-                LOGGER.info("Filtering URI's...");
+                    LOGGER.info("Filtering URI's...");
 
-                for (URI tempUri : tempCrawledUrls) {
-                    tempUri.normalize();
-                    if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()) {
-                        for (String s : prioDomainStrings) {
-                            String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
-                            boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
-                            if (tempUri.getPath() != null && tempUri.getPath().contains(s)
-                                    && (isNonSubDomain || request.getAllowSubdomains())) {
-                                crawledDomains.add(tempUri.normalize());
-                                i++;
-                                break;
+                    for (URI tempUri : tempCrawledUrls) {
+                        tempUri.normalize();
+                        if (urlValidator.isValid(tempUri.toURL().toString()) && i < request.getMaxCount()) {
+                            for (String s : prioDomainStrings) {
+                                String urlToScan = targetUrl.replace("https://", "").replace("http://", "");
+                                boolean isNonSubDomain = urlToScan.equals(tempUri.getHost());
+                                if (tempUri.getPath() != null && tempUri.getPath().contains(s)
+                                        && (isNonSubDomain || request.getAllowSubdomains())) {
+                                    crawledDomains.add(tempUri.normalize());
+                                    i++;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                String urlToScan = targetUrl.replace("https://", "").replace("http://", "").replace("/", "");
-                for (URI tempUri : tempCrawledUrls) {
+                    String urlToScan = targetUrl.replace("https://", "").replace("http://", "").replace("/", "");
+                    for (URI tempUri : tempCrawledUrls) {
 
-                    if (urlValidator.isValid(tempUri.toString())) {
-                        if (i < request.getMaxCount()) {
-                            if (!crawledDomains.contains(tempUri.normalize())) {
-                                if (urlToScan.equals(tempUri.getHost()) || request.getAllowSubdomains()) {
-                                    crawledDomains.add(tempUri.normalize());
-                                    LOGGER.debug("Added:" + tempUri.normalize().toASCIIString());
-                                    i++;
+                        if (urlValidator.isValid(tempUri.toString())) {
+                            if (i < request.getMaxCount()) {
+                                if (!crawledDomains.contains(tempUri.normalize())) {
+                                    if (urlToScan.equals(tempUri.getHost()) || request.getAllowSubdomains()) {
+                                        crawledDomains.add(tempUri.normalize());
+                                        LOGGER.debug("Added:" + tempUri.normalize().toASCIIString());
+                                        i++;
+                                    } else {
+                                        LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString()
+                                                + " - subdomain not conform");
+                                    }
                                 } else {
-                                    LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString()
-                                            + " - subdomain not conform");
+                                    LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - duplicate");
                                 }
                             } else {
-                                LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - duplicate");
+                                LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString()
+                                        + " - already got enough ");
                             }
                         } else {
-                            LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - already got enough ");
+                            LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - not valid");
                         }
-                    } else {
-                        LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - not valid");
+                        LOGGER.info("Filtering URI's finished");
                     }
-                    LOGGER.info("Filtering URI's finished");
                 }
             }
 

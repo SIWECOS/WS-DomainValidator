@@ -30,7 +30,15 @@ public class DnsQuery {
         try {
             Lookup lookup = new Lookup(hostname, Type.ANY);
             lookup.run();
-            return lookup.getResult() == Lookup.SUCCESSFUL;
+            if (lookup.getResult() != Lookup.SUCCESSFUL) {
+                return false;
+            }
+            for (Record r : lookup.getAnswers()) {
+                if (r.getType() == Type.A || r.getType() == Type.AAAA) {
+                    return true;
+                }
+            }
+            return false;
         } catch (TextParseException ex) {
             LOGGER.warn("Could not resolve DNS", ex);
         }
