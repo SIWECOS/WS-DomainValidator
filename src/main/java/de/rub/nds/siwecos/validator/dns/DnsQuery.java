@@ -28,9 +28,27 @@ public class DnsQuery {
 
     public static boolean isDnsResolvable(String hostname) {
         try {
-            Lookup lookup = new Lookup(hostname, Type.ANY);
+            Lookup lookup = new Lookup(hostname, Type.A);
             lookup.run();
-            return lookup.getResult() == Lookup.SUCCESSFUL;
+            if (lookup.getResult() == Lookup.SUCCESSFUL) {
+                for (Record r : lookup.getAnswers()) {
+                    if (r.getType() == Type.A || r.getType() == Type.AAAA) {
+                        return true;
+                    }
+                }
+            }
+
+            lookup = new Lookup(hostname, Type.AAAA);
+            lookup.run();
+            if (lookup.getResult() != Lookup.SUCCESSFUL) {
+                return false;
+            }
+            for (Record r : lookup.getAnswers()) {
+                if (r.getType() == Type.A || r.getType() == Type.AAAA) {
+                    return true;
+                }
+            }
+            return false;
         } catch (TextParseException ex) {
             LOGGER.warn("Could not resolve DNS", ex);
         }
