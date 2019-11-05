@@ -28,7 +28,7 @@
         <Logger name="DirectLogger" level="OFF"/>
         <Logger name="ConsoleLogger" level="OFF"/>
         <Logger name="de.rub.nds.tlsscanner" level="WARN"/>
-        <Root level="INFO">
+        <Root level="WARN">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
