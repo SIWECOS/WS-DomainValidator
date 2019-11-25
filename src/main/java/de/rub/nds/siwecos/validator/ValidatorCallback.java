@@ -247,8 +247,9 @@ public class ValidatorCallback implements Runnable {
                         } else {
                             LOGGER.debug("Filtered:" + tempUri.normalize().toASCIIString() + " - not valid");
                         }
-                        LOGGER.info("Filtering URI's finished");
                     }
+                    LOGGER.info("Filtering URI's finished");
+
                 }
             }
 
