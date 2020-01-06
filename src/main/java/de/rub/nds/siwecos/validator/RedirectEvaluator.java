@@ -61,6 +61,7 @@ public class RedirectEvaluator {
         }
 
         conn.setReadTimeout(5000);
+        conn.setConnectTimeout(5000);
         conn.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
         conn.addRequestProperty("User-Agent", useragent);
         conn.addRequestProperty("Referer", "siwecos.de");

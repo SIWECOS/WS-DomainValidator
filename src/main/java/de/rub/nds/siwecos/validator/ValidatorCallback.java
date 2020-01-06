@@ -94,7 +94,7 @@ public class ValidatorCallback implements Runnable {
         if (request.getUserAgent() == null) {
             request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
         }
-        String[] schemes = {"http", "https"};
+        String[] schemes = { "http", "https" };
         if (!(request.getDomain().toLowerCase().contains("http") || request.getDomain().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getDomain() + " assuming http");
             request.setDomain("http://" + request.getDomain());
@@ -277,6 +277,7 @@ public class ValidatorCallback implements Runnable {
                 URLConnection con = url.openConnection();
                 HttpURLConnection http = (HttpURLConnection) con;
                 con.setConnectTimeout(10000);
+                con.setReadTimeout(10000);
                 http.setRequestMethod("POST");
                 http.setDoInput(true);
                 http.setDoOutput(true);
