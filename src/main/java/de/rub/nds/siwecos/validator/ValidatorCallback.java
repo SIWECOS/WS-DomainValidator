@@ -94,7 +94,7 @@ public class ValidatorCallback implements Runnable {
         if (request.getUserAgent() == null) {
             request.setUserAgent("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
         }
-        String[] schemes = { "http", "https" };
+        String[] schemes = {"http", "https"};
         if (!(request.getDomain().toLowerCase().contains("http") || request.getDomain().toLowerCase().contains("https"))) {
             LOGGER.info("No protocol specified for " + request.getDomain() + " assuming http");
             request.setDomain("http://" + request.getDomain());
@@ -142,7 +142,10 @@ public class ValidatorCallback implements Runnable {
             if (dnsResolves) {
                 try {
                     RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                    if (evaluator.isRedirecting()) {
+                    if (evaluator.getNewUrl() == null) {
+                        LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                    }
+                    if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
                         targetUrl = evaluator.getNewUrl();
                     }
                     statusCode = evaluator.getStatusCode();
@@ -152,31 +155,43 @@ public class ValidatorCallback implements Runnable {
                     LOGGER.info("Could not retrieve status code for redirection evaluation.");
                     // Could not check if redirection is present checking with
                     // different protocol
-                    if (request.getDomain().toLowerCase().contains("http://")) {
-                        request.setDomain(request.getDomain().replace("http://", "https://"));
-                        LOGGER.info("Rechecking with HTTPS");
-                        RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                        if (evaluator.isRedirecting()) {
-                            targetUrl = evaluator.getNewUrl();
+                    try {
+                        if (request.getDomain().toLowerCase().contains("http://")) {
+                            request.setDomain(request.getDomain().replace("http://", "https://"));
+                            LOGGER.info("Rechecking with HTTPS");
+                            RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
+                            if (evaluator.getNewUrl() == null) {
+                                LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                            }
+                            if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
+                                targetUrl = evaluator.getNewUrl();
+                            }
+
+                            statusCode = evaluator.getStatusCode();
+                            isConnectableHTTP = evaluator.isCouldConnect();
+                            isRedirecting = evaluator.isRedirecting();
+
+                        } else if (request.getDomain().contains("https://")) {
+                            LOGGER.info("Rechecking with HTTP");
+                            request.setDomain(request.getDomain().replace("https://", "http://"));
+
+                            RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
+                            if (evaluator.getNewUrl() == null) {
+                                LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                            }
+                            if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
+                                targetUrl = evaluator.getNewUrl();
+                            }
+                            isRedirecting = evaluator.isRedirecting();
+                        } else {
+                            LOGGER.error("Cannot retrieve statuscode, likely no http/https supported");
+
+                            isRedirecting = null;
                         }
-
-                        statusCode = evaluator.getStatusCode();
-                        isConnectableHTTP = evaluator.isCouldConnect();
-                        isRedirecting = evaluator.isRedirecting();
-
-                    } else if (request.getDomain().contains("https://")) {
-                        LOGGER.info("Rechecking with HTTP");
-                        request.setDomain(request.getDomain().replace("https://", "http://"));
-
-                        RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                        if (evaluator.isRedirecting()) {
-                            targetUrl = evaluator.getNewUrl();
-                        }
-                        isRedirecting = evaluator.isRedirecting();
-                    } else {
-                        LOGGER.error("Cannot retrieve statuscode, likely no http/https supported");
-
+                    } catch (Exception ex) {
+                        LOGGER.warn("Cannot retrieve statuscode, likely no http/https supported", ex);
                         isRedirecting = null;
+
                     }
                 }
             }
