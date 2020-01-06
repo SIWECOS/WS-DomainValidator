@@ -14,7 +14,6 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import edu.uci.ics.crawler4j.url.WebURL;
 import java.net.URI;
 import java.util.LinkedList;
@@ -57,6 +56,7 @@ public class Crawler extends WebCrawler {
         config.setResumableCrawling(false);
         config.setFollowRedirects(true);
         config.setThreadShutdownDelaySeconds(0);
+        config.setConnectionTimeout(10000);
         config.setThreadMonitoringDelaySeconds(1);
         config.setCleanupDelaySeconds(1);
         config.setShutdownOnEmptyQueue(true);
@@ -64,7 +64,7 @@ public class Crawler extends WebCrawler {
         List<URI> uriList = new LinkedList<>();
         PageFetcher pageFetcher = new PageFetcher(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
-        RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
+        RegexPatchedRobotsTxtServer robotstxtServer = new RegexPatchedRobotsTxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller;
         try {
             controller = new CrawlController(config, pageFetcher, robotstxtServer);
