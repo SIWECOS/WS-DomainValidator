@@ -142,8 +142,8 @@ public class ValidatorCallback implements Runnable {
             if (dnsResolves) {
                 try {
                     RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                    if (evaluator.getNewUrl() == null) {
-                        LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                    if (evaluator.isRedirecting() && evaluator.getNewUrl() == null) {
+                        LOGGER.warn("url: " + request.getDomain() + " is redirecting to nothing");
                     }
                     if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
                         targetUrl = evaluator.getNewUrl();
@@ -160,8 +160,8 @@ public class ValidatorCallback implements Runnable {
                             request.setDomain(request.getDomain().replace("http://", "https://"));
                             LOGGER.info("Rechecking with HTTPS");
                             RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                            if (evaluator.getNewUrl() == null) {
-                                LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                            if (evaluator.isRedirecting() && evaluator.getNewUrl() == null) {
+                                LOGGER.warn("url: " + request.getDomain() + " is redirecting to nothing");
                             }
                             if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
                                 targetUrl = evaluator.getNewUrl();
@@ -176,8 +176,8 @@ public class ValidatorCallback implements Runnable {
                             request.setDomain(request.getDomain().replace("https://", "http://"));
 
                             RedirectEvaluator evaluator = new RedirectEvaluator(request.getDomain(), request.getUserAgent());
-                            if (evaluator.getNewUrl() == null) {
-                                LOGGER.warn("url: " + evaluator.getNewUrl() + " is redirecting to nothing");
+                            if (evaluator.isRedirecting() && evaluator.getNewUrl() == null) {
+                                LOGGER.warn("url: " + request.getDomain() + " is redirecting to nothing");
                             }
                             if (evaluator.isRedirecting() && evaluator.getNewUrl() != null) {
                                 targetUrl = evaluator.getNewUrl();
@@ -185,13 +185,11 @@ public class ValidatorCallback implements Runnable {
                             isRedirecting = evaluator.isRedirecting();
                         } else {
                             LOGGER.error("Cannot retrieve statuscode, likely no http/https supported");
-
                             isRedirecting = null;
                         }
                     } catch (Exception ex) {
                         LOGGER.warn("Cannot retrieve statuscode, likely no http/https supported", ex);
                         isRedirecting = null;
-
                     }
                 }
             }
